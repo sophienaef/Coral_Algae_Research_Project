@@ -18,7 +18,7 @@ tree_dt <- as.Node(taxonomy_list, pathName = "pathString")
 phy <- as.phylo.Node(tree_dt)
 
 # Save tree to PDF
-pdf("phylogenetic_tree.pdf", width = 15, height = 10)
+pdf("phylogenetic_tree.pdf", width = 15, height = 12)
 
 # Plot base tree without node labels
 plot(
@@ -45,7 +45,7 @@ if(!is.null(phy$node.label)) {
   
   # Prepare x positions: shift root less far, others more
   x_positions <- node_x - 19         # shift all internal nodes by 18 units left
-  x_positions[root_index] <- node_x[root_index] - 7  # shift root label only 6 units left
+  x_positions[root_index] <- node_x[root_index] - 8  # shift root label only 6 units left
   
   # Add internal node labels with custom shifts
   text(
@@ -53,7 +53,7 @@ if(!is.null(phy$node.label)) {
     y = node_y,
     labels = phy$node.label,
     cex = 1.2,
-    adj = c(0, -0.4),        # left-align horizontally, slightly below vertical center
+    adj = c(0, -0.3),        # left-align horizontally, slightly below vertical center
     xpd = TRUE
   )
 }
