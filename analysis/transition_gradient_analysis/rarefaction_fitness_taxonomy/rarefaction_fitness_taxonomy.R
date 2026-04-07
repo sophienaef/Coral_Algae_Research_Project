@@ -172,28 +172,82 @@ family_labels <- family_labels[family_to_include]
 
 # Define your clade colors (adjust as needed)
 clade_colors <- c(
-  "A" = "lightpink1",
-  "C" = "lightgoldenrod2",
-  "D" = "lightblue2"
+  "A" = "#86BABD",
+  "C" = "#D9C87F",
+  "D" = "#E69591"
 )
 
 # Plot with custom facet labels and ordered facets
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
-  geom_area(alpha = 0.8, position = "stack") +
+  geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
   facet_wrap(~ Family, scales = "free_x", labeller = labeller(Family = family_labels)) +
   labs(
-    title = "Stacked Clade Probabilities Across Temperature by Selected Families",
-    x = "Temperature (°C)",
+    x = "Temperature °C",
     y = "Probability"
   ) +
   theme_minimal() +
   theme(
-    strip.text = element_text(face = "bold", size = 6),
-    legend.position = "top"
+    strip.text = element_text(size = 8),
+    legend.position = "none",
+    text = element_text(size = 8),
+    plot.title = element_text(size = 12)
   )
 
 print(stacked_area_plot)
 
-# Save plot as PDF
-ggsave("stacked_area_plot_selected_family.pdf", plot = stacked_area_plot, width = 11, height = 7)
+
+
+
+
+
+
+
+
+summary_df <- read.csv("summary_clade_probabilities_by_family.csv")
+
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+clade_colors <- c(
+  "A" = "#86BABD",
+  "C" = "#D9C87F",
+  "D" = "#E69591"
+)
+
+# List of genera to include
+family_to_include <- c("Euphylliidae", "Agariciidae", "Milleporidae", "Pocilloporidae",
+                        "Poritidae", "Xeniidae", "Acroporidae", "Merulinidae")
+
+# Prepare data for plotting, including Genus
+plot_data <- summary_df %>%
+  pivot_longer(cols = starts_with("mean_prob_"), names_to = "Clade", values_to = "Probability") %>%
+  mutate(
+    Clade = recode(Clade, mean_prob_A = "A", mean_prob_C = "C", mean_prob_D = "D"),
+    Temperature = (block_start + block_end) / 2
+  ) %>%
+  filter(Family %in% family_to_include)  # Filter to include only selected genera
+
+# Stacked area plot faceted by Genus
+stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
+  geom_area(alpha = 0.7, position = "stack") +
+  scale_fill_manual(values = clade_colors) +
+  facet_wrap(~ Family, scales = "free_x") +  # Facet by Genus
+  labs(
+    x = "Temperature °C",
+    y = "Probability"
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_text(size = 16),       # Facet labels bigger
+    legend.position = "none",
+    axis.title = element_text(size = 16),       # Axis titles bigger
+    axis.text = element_text(size = 14),        # Axis text bigger
+    plot.title = element_text(size = 18, face = "bold"),  # Plot title bigger and bold
+    text = element_text(size = 14)
+  )
+
+print(stacked_area_plot)
+ggsave("stacked_area_plot_selected_family.pdf", plot = stacked_area_plot, width = 12.5, height = 7)
+
