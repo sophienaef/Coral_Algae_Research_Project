@@ -133,8 +133,8 @@ p <- ggplot() +
     aes(x = Longitude, y = Latitude),
     shape = 18,
     color = "black",      # You can choose any color
-    size = 4,           # Adjust size as needed
-    alpha = 0.7         # Optional transparency
+    size = 8,           # Adjust size as needed
+    alpha = 0.6         # Optional transparency
   ) +
   
   # Color scale (your flipped version)
@@ -179,3 +179,4 @@ p <- ggplot() +
 print(p)
 
 ggsave("heat_map.pdf", plot = p, width = 6, height = 10)
+
