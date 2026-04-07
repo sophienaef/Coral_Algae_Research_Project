@@ -86,14 +86,16 @@ write.csv(summary_df, "summary_clade_probabilities.csv", row.names = FALSE)
 
 ### 
 
+summary_df <- read.csv("summary_clade_probabilities.csv")
+
 library(ggplot2)
 library(tidyr)
 library(dplyr)
 
 clade_colors <- c(
-  "A" = "lightpink1",
-  "C" = "lightgoldenrod2",
-  "D" = "lightblue2"
+  "A" = "#86BABD",
+  "C" = "#D9C87F",
+  "D" = "#E69591"
 )
 
 # stacked area plot
@@ -102,10 +104,9 @@ plot_data <- summary_df %>%
   mutate(Clade = recode(Clade, mean_prob_A = "A", mean_prob_C = "C", mean_prob_D = "D"))
 
 stacked_area_plot <- ggplot(plot_data, aes(x = (block_start + block_end)/2, y = Probability, fill = Clade)) +
-  geom_area(alpha = 0.8, position = "stack") +
+  geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
-  labs(title = "Stacked Clade Probabilities Across Temperature",
-       x = "Temperature (°C)", y = "Probability") +
+  labs(       x = "Temperature °C", y = "Probability") +
   theme_minimal()
 
 print(stacked_area_plot)
@@ -113,6 +114,13 @@ ggsave("stacked_area_plot.pdf", plot = stacked_area_plot, width = 8, height = 5)
 
 
 # faceted plot
+
+clade_colors <- c(
+  "Symbiodinium" = "#86BABD",
+  "Cladocopium" = "#D9C87F",
+  "Durusdinium" = "#E69591"
+)
+
 plot_data <- summary_df %>%
   pivot_longer(
     cols = starts_with("mean_prob_"),
@@ -121,9 +129,10 @@ plot_data <- summary_df %>%
   ) %>%
   mutate(
     Clade = recode(Clade,
-                   mean_prob_A = "A",
-                   mean_prob_C = "C",
-                   mean_prob_D = "D"),
+                   mean_prob_A = "Symbiodinium",
+                   mean_prob_C = "Cladocopium",
+                   mean_prob_D = "Durusdinium"),
+    Clade = factor(Clade, levels = c("Symbiodinium", "Cladocopium", "Durusdinium")),
     Temperature = (block_start + block_end) / 2  # midpoint of the block
   )
 
@@ -132,14 +141,24 @@ faceted_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = C
   scale_fill_manual(values = clade_colors) +
   facet_wrap(~Clade, ncol = 1) +
   theme_minimal() +
-  theme(legend.position = "none") +
-  labs(title = "Clade Probability by Temperature (Faceted)",
-       x = "Temperature (°C)", y = "Probability")
+  theme(
+    strip.text = element_blank(),
+    legend.position = "bottom",
+    text = element_text(size = 12),
+    plot.title = element_text(size = 24),
+  ) +
+  labs(x = "Temperature °C", y = "Probability", fill = NULL, color = NULL, shape = NULL, size = NULL)
 
 print(faceted_plot)
-ggsave("faceted_clade_probability_plot.pdf", plot = faceted_plot, width = 6, height = 8)
+ggsave("faceted_clade_probability_plot.pdf", plot = faceted_plot, width = 10, height = 7)
+
+
+
 
 ###
+
+
+
 
 # additional division by genus
 
@@ -232,14 +251,16 @@ write.csv(summary_df, "summary_clade_probabilities_by_genus.csv", row.names = FA
 
 # plots
 
+summary_df <- read.csv("summary_clade_probabilities_by_genus.csv")
+
 library(ggplot2)
 library(tidyr)
 library(dplyr)
 
 clade_colors <- c(
-  "A" = "lightpink1",
-  "C" = "lightgoldenrod2",
-  "D" = "lightblue2"
+  "A" = "#86BABD",
+  "C" = "#D9C87F",
+  "D" = "#E69591"
 )
 
 # List of genera to include
@@ -256,19 +277,21 @@ plot_data <- summary_df %>%
 
 # Stacked area plot faceted by Genus
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
-  geom_area(alpha = 0.8, position = "stack") +
+  geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
   facet_wrap(~ Genus, scales = "free_x") +  # Facet by Genus
   labs(
-    title = "Stacked Clade Probabilities Across Temperature by Selected Genera",
-    x = "Temperature (°C)",
+    x = "Temperature °C",
     y = "Probability"
   ) +
   theme_minimal() +
   theme(
-    strip.text = element_text(face = "bold", size = 12),
-    legend.position = "top"
+    strip.text = element_text(size = 8),
+    legend.position = "none",
+    text = element_text(size = 8),
+    plot.title = element_text(size = 12)
   )
 
 print(stacked_area_plot)
-ggsave("stacked_area_plot_selected_genera.pdf", plot = stacked_area_plot, width = 10, height = 7)
+ggsave("stacked_area_plot_selected_genera.pdf", plot = stacked_area_plot, width = 12.5, height = 7)
+
