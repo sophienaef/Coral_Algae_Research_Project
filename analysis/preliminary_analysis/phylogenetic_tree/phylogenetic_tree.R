@@ -18,13 +18,13 @@ tree_dt <- as.Node(taxonomy_list, pathName = "pathString")
 phy <- as.phylo.Node(tree_dt)
 
 # Save tree to PDF
-pdf("phylogenetic_tree.pdf", width = 12, height = 11)
+pdf("phylogenetic_tree.pdf", width = 15, height = 10)
 
 # Plot base tree without node labels
 plot(
   phy,
   edge.width = 2,
-  cex = 0.8,
+  cex = 1.2,
   tip.color = "black",
   font = 3,
   show.node.label = FALSE,
@@ -52,11 +52,10 @@ if(!is.null(phy$node.label)) {
     x = x_positions,
     y = node_y,
     labels = phy$node.label,
-    cex = 0.8,
+    cex = 1.2,
     adj = c(0, -0.4),        # left-align horizontally, slightly below vertical center
     xpd = TRUE
   )
 }
 
 dev.off()
-
