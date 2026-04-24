@@ -8,21 +8,17 @@ for (file in csv_files) {
 
 library(dplyr)
 
-# Load your taxonomy list
 taxonomy_list <- read.csv("taxonomy_list.csv")
 
-# Get all object names starting with "sample_"
 sample_names <- ls(pattern = "^sample_")
 
 for (name in sample_names) {
   obj <- get(name)
   
-  # Process only if the object is a data frame
   if (is.data.frame(obj)) {
     enriched_df <- obj %>%
       left_join(taxonomy_list %>% select(Genus, Family), by = "Genus")
     
-    # Overwrite the original data frame
     assign(name, enriched_df)
   } else {
     message(paste(name, "is not a data frame and was skipped."))
@@ -34,32 +30,25 @@ for (name in sample_names) {
 source("func_bb.r")
 library(dplyr)
 
-# Collect all sample data frames starting with "sample_"
 sample_names <- ls(pattern = "^sample_")
-
-# Remove any non-data frame objects if needed
 sample_names <- setdiff(sample_names, "sample_names")
-
 samples_list <- mget(sample_names)
 
 set.seed(123)
 n_iterations <- 1000
 all_results <- list()
 
-clade_levels <- c("A", "C", "D")  # your actual clade labels
+clade_levels <- c("A", "C", "D")
 
-# Extract all unique genera across samples to loop over
 all_family <- unique(unlist(lapply(samples_list, function(df) {
   if (is.data.frame(df) && "Family" %in% names(df)) {
     unique(df$Family)
   } else {
-    NULL  # skip non-data frames or those without Family column
+    NULL 
   }
 })))
 
 for (iter in 1:n_iterations) {
-  
-  # Rarefy each sample to 4 points
   rarefied_samples <- lapply(samples_list, function(sample_df) {
     if (nrow(sample_df) > 4) {
       sample_df %>% sample_n(4)
@@ -70,10 +59,7 @@ for (iter in 1:n_iterations) {
   
   combined_data <- bind_rows(rarefied_samples)
   
-  # Run Bayesian Blocks segmentation
   edges <- bayesian_blocks(combined_data$avg_sst, p0 = 0.01)
-  
-  # Add min and max to edges to cover full range
   edges <- sort(unique(c(min(combined_data$avg_sst), edges, max(combined_data$avg_sst))))
   
   results <- list()
@@ -85,7 +71,6 @@ for (iter in 1:n_iterations) {
     block_data <- combined_data %>%
       filter(avg_sst >= t_start & avg_sst < t_end)
     
-    # For each Family, calculate clade proportions within this block
     for (family in all_family) {
       family_data <- block_data %>% filter(Family == family)
       
@@ -135,16 +120,13 @@ library(ggplot2)
 family_to_include <- c("Euphylliidae", "Agariciidae", "Milleporidae", "Pocilloporidae",
                        "Poritidae", "Xeniidae", "Acroporidae", "Merulinidae")
 
-# Extract unique Family-Genus pairs from taxonomy_list
 family_genus_ref <- taxonomy_list %>%
   select(Family, Genus) %>%
   distinct()
 
-# Join Genus info to summary_df by Family
 summary_with_genus <- summary_df %>%
   left_join(family_genus_ref, by = "Family")
 
-# Prepare data for plotting
 plot_data <- summary_with_genus %>%
   pivot_longer(
     cols = starts_with("mean_prob_"),
@@ -157,27 +139,22 @@ plot_data <- summary_with_genus %>%
   ) %>%
   filter(Family %in% family_to_include)
 
-# Set Family as factor with levels in the desired order for facet ordering
 plot_data$Family <- factor(plot_data$Family, levels = family_to_include)
 
-# Create a named vector for facet labels with genera listed under family
 family_labels <- plot_data %>%
   group_by(Family) %>%
   summarize(genera = paste(sort(unique(Genus)), collapse = ", ")) %>%
   mutate(label = paste0(Family, "\n(", genera, ")")) %>%
   { setNames(.$label, .$Family) }
 
-# Reorder family_labels to match the factor levels
 family_labels <- family_labels[family_to_include]
 
-# Define your clade colors (adjust as needed)
 clade_colors <- c(
   "A" = "#86BABD",
   "C" = "#D9C87F",
   "D" = "#E69591"
 )
 
-# Plot with custom facet labels and ordered facets
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
   geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
@@ -196,13 +173,7 @@ stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fil
 
 print(stacked_area_plot)
 
-
-
-
-
-
-
-
+###
 
 summary_df <- read.csv("summary_clade_probabilities_by_family.csv")
 
@@ -216,35 +187,32 @@ clade_colors <- c(
   "D" = "#E69591"
 )
 
-# List of genera to include
 family_to_include <- c("Euphylliidae", "Agariciidae", "Milleporidae", "Pocilloporidae",
                         "Poritidae", "Xeniidae", "Acroporidae", "Merulinidae")
 
-# Prepare data for plotting, including Genus
 plot_data <- summary_df %>%
   pivot_longer(cols = starts_with("mean_prob_"), names_to = "Clade", values_to = "Probability") %>%
   mutate(
     Clade = recode(Clade, mean_prob_A = "A", mean_prob_C = "C", mean_prob_D = "D"),
     Temperature = (block_start + block_end) / 2
   ) %>%
-  filter(Family %in% family_to_include)  # Filter to include only selected genera
+  filter(Family %in% family_to_include) 
 
-# Stacked area plot faceted by Genus
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
   geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
-  facet_wrap(~ Family, scales = "free_x") +  # Facet by Genus
+  facet_wrap(~ Family, scales = "free_x") + 
   labs(
     x = "Temperature °C",
     y = "Probability"
   ) +
   theme_minimal() +
   theme(
-    strip.text = element_text(size = 16),       # Facet labels bigger
+    strip.text = element_text(size = 16),
     legend.position = "none",
-    axis.title = element_text(size = 16),       # Axis titles bigger
-    axis.text = element_text(size = 14),        # Axis text bigger
-    plot.title = element_text(size = 18, face = "bold"),  # Plot title bigger and bold
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    plot.title = element_text(size = 18, face = "bold"), 
     text = element_text(size = 14)
   )
 
