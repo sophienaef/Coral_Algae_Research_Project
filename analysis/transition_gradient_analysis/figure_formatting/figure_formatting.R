@@ -36,8 +36,8 @@ faceted_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = C
     strip.text = element_blank(),
     legend.position = "top",
     legend.text = element_text(size = 10),
-    axis.title.x = element_text(size = 10, margin = margin(t = 10)),  # Add space above x-axis title
-    axis.title.y = element_text(size = 10, margin = margin(r = 10)),  # Add space to the right of y-axis title
+    axis.title.x = element_text(size = 10, margin = margin(t = 10)), 
+    axis.title.y = element_text(size = 10, margin = margin(r = 10)), 
     axis.text = element_text(size = 10), 
     text = element_text(size = 10),
     plot.title = element_text(size = 14, face = "bold"),
@@ -63,35 +63,32 @@ clade_colors <- c(
   "D" = "#F0BDB3"
 )
 
-# List of genera to include
 genera_to_include <- c("Galaxea", "Gardineroseris", "Milleporidae", "Pocillopora", "Porites", "Seriatopora", "Stylophora", "Xenia")
 
-# Prepare data for plotting, including Genus
 plot_data <- summary_df %>%
   pivot_longer(cols = starts_with("mean_prob_"), names_to = "Clade", values_to = "Probability") %>%
   mutate(
     Clade = recode(Clade, mean_prob_A = "A", mean_prob_C = "C", mean_prob_D = "D"),
     Temperature = (block_start + block_end) / 2
   ) %>%
-  filter(Genus %in% genera_to_include)  # Filter to include only selected genera
+  filter(Genus %in% genera_to_include) 
 
-# Stacked area plot faceted by Genus
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
   geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
-  facet_wrap(~ Genus, scales = "free_x") +  # Facet by Genus
+  facet_wrap(~ Genus, scales = "free_x") +  
   labs(
     x = "Temperature °C",
     y = "Probability"
   ) +
   theme_minimal() +
   theme(
-    strip.text = element_text(size = 19),       # Facet labels bigger
+    strip.text = element_text(size = 19),      
     legend.position = "none",
-    axis.title.x = element_text(size = 19, margin = margin(t = 19)),  # Add space above x-axis title
-    axis.title.y = element_text(size = 19, margin = margin(r = 19)),       # Axis titles bigger
-    axis.text = element_text(size = 19),        # Axis text bigger
-    plot.title = element_text(size = 19, face = "bold"),  # Plot title bigger and bold
+    axis.title.x = element_text(size = 19, margin = margin(t = 19)), 
+    axis.title.y = element_text(size = 19, margin = margin(r = 19)),       
+    axis.text = element_text(size = 19),     
+    plot.title = element_text(size = 19, face = "bold"),  
     text = element_text(size = 19)
   )
 
@@ -114,38 +111,35 @@ clade_colors <- c(
   "D" = "#F0BDB3"
 )
 
-# List of genera to include
 family_to_include <- c("Euphylliidae", "Agariciidae", "Milleporidae", "Pocilloporidae",
                        "Poritidae", "Xeniidae", "Acroporidae", "Merulinidae")
 
-# Prepare data for plotting, including Genus
 plot_data <- summary_df %>%
   pivot_longer(cols = starts_with("mean_prob_"), names_to = "Clade", values_to = "Probability") %>%
   mutate(
     Clade = recode(Clade, mean_prob_A = "A", mean_prob_C = "C", mean_prob_D = "D"),
     Temperature = (block_start + block_end) / 2
   ) %>%
-  filter(Family %in% family_to_include)  # Filter to include only selected genera
+  filter(Family %in% family_to_include) 
 
 plot_data$Family <- factor(plot_data$Family, levels = family_to_include)
 
-# Stacked area plot faceted by Genus
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
   geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
-  facet_wrap(~ Family, scales = "free_x") +  # Facet by Genus
+  facet_wrap(~ Family, scales = "free_x") +  
   labs(
     x = "Temperature °C",
     y = "Probability"
   ) +
   theme_minimal() +
   theme(
-    strip.text = element_text(size = 19),       # Facet labels bigger
+    strip.text = element_text(size = 19),      
     legend.position = "none",
-    axis.title.x = element_text(size = 19, margin = margin(t = 19)),  # Add space above x-axis title
-    axis.title.y = element_text(size = 19, margin = margin(r = 19)),     # Axis titles bigger
-    axis.text = element_text(size = 19),        # Axis text bigger
-    plot.title = element_text(size = 19, face = "bold"),  # Plot title bigger and bold
+    axis.title.x = element_text(size = 19, margin = margin(t = 19)), 
+    axis.title.y = element_text(size = 19, margin = margin(r = 19)),     
+    axis.text = element_text(size = 19),       
+    plot.title = element_text(size = 19, face = "bold"),  
     text = element_text(size = 19)
   )
 
