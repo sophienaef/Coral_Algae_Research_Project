@@ -212,7 +212,6 @@ max_sst_2017 <- read.csv("../import_sst_data/max_sst_per_year_red_sea_2017.csv")
 library(dplyr)
 library(FNN)  
 
-# Helper function to find nearest SST for one row
 get_nearest_sst <- function(lat, lon, year, avg_list, max_list) {
   avg_df <- avg_list[[as.character(year)]]
   max_df <- max_list[[as.character(year)]]
@@ -221,25 +220,20 @@ get_nearest_sst <- function(lat, lon, year, avg_list, max_list) {
     return(c(NA, NA))
   }
   
-  # Prepare matrix of SST points (lon, lat)
   points_avg <- as.matrix(avg_df[, c("lon", "lat")])
   points_max <- as.matrix(max_df[, c("lon", "lat")])
   
-  # Query point
   query_point <- matrix(c(lon, lat), nrow = 1)
   
-  # Find nearest neighbor index for avg_sst
   nn_avg <- get.knnx(points_avg, query_point, k = 1)$nn.index[1,1]
   nearest_avg_sst <- avg_df$avg_sst[nn_avg]
   
-  # Find nearest neighbor index for max_sst
   nn_max <- get.knnx(points_max, query_point, k = 1)$nn.index[1,1]
   nearest_max_sst <- max_df$max_sst[nn_max]
   
   return(c(nearest_avg_sst, nearest_max_sst))
 }
 
-# Put your yearly SST datasets into named lists for easy lookup
 avg_sst_list <- list(
   "2000" = avg_sst_2000,
   "2001" = avg_sst_2001,
@@ -256,16 +250,14 @@ max_sst_list <- list(
   "2017" = max_sst_2017
 )
 
-# Initialize new columns
 all_unique_locations$avg_sst <- NA_real_
 all_unique_locations$max_sst <- NA_real_
 
-# Loop through all rows to find nearest SST values
 for (i in seq_len(nrow(all_unique_locations))) {
   row <- all_unique_locations[i, ]
   lat <- row$Latitude
   lon <- row$Longitude
-  year <- as.character(row$Date)  # assuming Date is year as numeric or string
+  year <- as.character(row$Date) 
   
   sst_values <- get_nearest_sst(lat, lon, year, avg_sst_list, max_sst_list)
   
