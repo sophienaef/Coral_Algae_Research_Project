@@ -155,14 +155,12 @@ library(patchwork)
 
 world <- st_as_sf(maps::map("world", plot = FALSE, fill = TRUE))
 
-# Custom clade colors
 clade_colors <- c(
   "A" = "lightpink1",
   "C" = "lightgoldenrod2",
   "D" = "lightblue2"
 )
 
-# Function to plot map per genus with clustered pie charts
 plot_genus_map <- function(genus_data, genus_name) {
   
   points_sf <- st_as_sf(genus_data, coords = c("longitude", "latitude"), crs = 4326)
@@ -180,8 +178,7 @@ plot_genus_map <- function(genus_data, genus_name) {
   graph <- igraph::graph_from_edgelist(edges, directed = FALSE)
   clusters <- igraph::clusters(graph)$membership
   points_sf$cluster_id <- clusters
-  
-  # Aggregate clade counts per cluster (no geometry here)
+
   cluster_summary <- points_sf %>%
     st_drop_geometry() %>%
     group_by(cluster_id, Clade) %>%
@@ -190,17 +187,14 @@ plot_genus_map <- function(genus_data, genus_name) {
     mutate(prop = count / sum(count)) %>%
     ungroup()
   
-  # Calculate cluster centroids (sf with geometry and cluster_id)
   cluster_centroids <- points_sf %>%
     group_by(cluster_id) %>%
     summarise(geometry = st_centroid(st_union(geometry))) %>%
     ungroup()
-  
-  # Join cluster_summary (attributes) to cluster_centroids (sf with geometry)
+
   cluster_data <- cluster_centroids %>%
     left_join(cluster_summary, by = "cluster_id")
   
-  # Prepare pie chart angles (group by cluster_id)
   cluster_data <- cluster_data %>%
     arrange(Clade) %>%
     group_by(cluster_id) %>%
@@ -210,12 +204,10 @@ plot_genus_map <- function(genus_data, genus_name) {
     ) %>%
     ungroup()
   
-  # Extract coordinates for plotting pies
   coords <- st_coordinates(cluster_data)
   cluster_data$x <- coords[,1]
   cluster_data$y <- coords[,2]
   
-  # Plot map with pie charts
   p <- ggplot() +
     geom_sf(data = world, fill = "antiquewhite") +
     coord_sf(xlim = c(32, 44), ylim = c(18, 30)) +
@@ -237,7 +229,6 @@ plot_genus_map <- function(genus_data, genus_name) {
   return(p)
 }
 
-# Your desired order and page setup
 desired_order <- c(
   "Favia", "Fungia", "Lobophytum", "Pavona", "Sinularia", "Turbinaria",
   "Astreopora", "Diploastrea", "Leptoria", "Porites", "Xenia",
@@ -256,7 +247,6 @@ page_titles <- c(
   "All three Clades no pattern"
 )
 
-# Build map list in desired order
 map_list <- list()
 for (genus_name in desired_order) {
   if (genus_name %in% names(genus_list)) {
@@ -268,7 +258,6 @@ for (genus_name in desired_order) {
   }
 }
 
-# Save maps per page with custom layout and titles
 start_idx <- 1
 
 for (page in seq_along(maps_per_page_vec)) {
