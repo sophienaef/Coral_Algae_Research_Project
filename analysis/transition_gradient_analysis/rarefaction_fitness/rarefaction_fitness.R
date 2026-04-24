@@ -11,10 +11,8 @@ for (file in csv_files) {
 source("func_bb.r")
 library(dplyr)
 
-# Collect all sample data frames starting with "sample_"
 sample_names <- ls(pattern = "^sample_")
 
-# Remove any non-data frame objects if needed
 sample_names <- setdiff(sample_names, "sample_names")
 
 samples_list <- mget(sample_names)
@@ -26,8 +24,7 @@ all_results <- list()
 clade_levels <- c("A", "C", "D")  # your actual clade labels
 
 for (iter in 1:n_iterations) {
-  
-  # Rarefy each sample to 4 points
+
   rarefied_samples <- lapply(samples_list, function(sample_df) {
     if (nrow(sample_df) > 4) {
       sample_df %>% sample_n(4)
@@ -38,10 +35,8 @@ for (iter in 1:n_iterations) {
   
   combined_data <- bind_rows(rarefied_samples)
   
-  # Run Bayesian Blocks segmentation
   edges <- bayesian_blocks(combined_data$avg_sst, p0 = 0.01)
   
-  # Add min and max to edges to cover full range
   edges <- sort(unique(c(min(combined_data$avg_sst), edges, max(combined_data$avg_sst))))
   
   results <- list()
@@ -133,7 +128,7 @@ plot_data <- summary_df %>%
                    mean_prob_C = "Cladocopium",
                    mean_prob_D = "Durusdinium"),
     Clade = factor(Clade, levels = c("Symbiodinium", "Cladocopium", "Durusdinium")),
-    Temperature = (block_start + block_end) / 2  # midpoint of the block
+    Temperature = (block_start + block_end) / 2 
   )
 
 faceted_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
@@ -154,9 +149,7 @@ ggsave("faceted_clade_probability_plot.pdf", plot = faceted_plot, width = 10, he
 
 
 
-
 ###
-
 
 
 
@@ -165,10 +158,8 @@ ggsave("faceted_clade_probability_plot.pdf", plot = faceted_plot, width = 10, he
 source("func_bb.r")
 library(dplyr)
 
-# Collect all sample data frames starting with "sample_"
 sample_names <- ls(pattern = "^sample_")
 
-# Remove any non-data frame objects if needed
 sample_names <- setdiff(sample_names, "sample_names")
 
 samples_list <- mget(sample_names)
@@ -179,12 +170,10 @@ all_results <- list()
 
 clade_levels <- c("A", "C", "D")  # your actual clade labels
 
-# Extract all unique genera across samples to loop over
 all_genera <- unique(unlist(lapply(samples_list, function(df) unique(df$Genus))))
 
 for (iter in 1:n_iterations) {
   
-  # Rarefy each sample to 4 points
   rarefied_samples <- lapply(samples_list, function(sample_df) {
     if (nrow(sample_df) > 4) {
       sample_df %>% sample_n(4)
@@ -195,10 +184,8 @@ for (iter in 1:n_iterations) {
   
   combined_data <- bind_rows(rarefied_samples)
   
-  # Run Bayesian Blocks segmentation
   edges <- bayesian_blocks(combined_data$avg_sst, p0 = 0.01)
   
-  # Add min and max to edges to cover full range
   edges <- sort(unique(c(min(combined_data$avg_sst), edges, max(combined_data$avg_sst))))
   
   results <- list()
@@ -210,7 +197,6 @@ for (iter in 1:n_iterations) {
     block_data <- combined_data %>%
       filter(avg_sst >= t_start & avg_sst < t_end)
     
-    # For each Genus, calculate clade proportions within this block
     for (genus in all_genera) {
       genus_data <- block_data %>% filter(Genus == genus)
       
@@ -263,23 +249,20 @@ clade_colors <- c(
   "D" = "#E69591"
 )
 
-# List of genera to include
 genera_to_include <- c("Galaxea", "Gardineroseris", "Milleporidae", "Pocillopora", "Porites", "Seriatopora", "Stylophora", "Xenia")
 
-# Prepare data for plotting, including Genus
 plot_data <- summary_df %>%
   pivot_longer(cols = starts_with("mean_prob_"), names_to = "Clade", values_to = "Probability") %>%
   mutate(
     Clade = recode(Clade, mean_prob_A = "A", mean_prob_C = "C", mean_prob_D = "D"),
     Temperature = (block_start + block_end) / 2
   ) %>%
-  filter(Genus %in% genera_to_include)  # Filter to include only selected genera
+  filter(Genus %in% genera_to_include)  
 
-# Stacked area plot faceted by Genus
 stacked_area_plot <- ggplot(plot_data, aes(x = Temperature, y = Probability, fill = Clade)) +
   geom_area(alpha = 0.7, position = "stack") +
   scale_fill_manual(values = clade_colors) +
-  facet_wrap(~ Genus, scales = "free_x") +  # Facet by Genus
+  facet_wrap(~ Genus, scales = "free_x") + 
   labs(
     x = "Temperature °C",
     y = "Probability"
